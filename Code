@@ -1,0 +1,139 @@
+import platform
+import time
+import pygame
+import cpuinfo
+import psutil
+from pygame import display
+from pygame.event import get
+from pygame.transform import scale2x
+import socket
+
+branco = (255,255,255)
+preto = (0,0,0)
+azul = (0,0,255)
+vermelho = (255,0,0)
+rosa = (227, 38, 54)
+
+altura_tela = 600
+largura_tela = 800
+tela = pygame.display.set_mode((largura_tela, altura_tela))
+
+info = cpuinfo.get_cpu_info()
+
+pygame.display.init()
+pygame.font.init()
+
+font14 = pygame.font.SysFont(None, 14)
+font20 = pygame.font.SysFont(None, 20)
+font30 = pygame.font.SysFont(None, 30)
+
+pygame.display.set_caption('Informações do computador')
+
+def escrever_titulo():    
+    texto = "INFORMAÇÕES DO PC" 
+    text = font30.render(texto, 1, branco)
+    tela.blit(text, (300, 10))
+
+
+def uso_cpu():
+    cpu = psutil.cpu_percent()
+    plataforma = platform.processor()
+
+    largura = largura_tela - 2 * 30   
+
+    pygame.draw.rect(tela, azul, (20, 150, largura, 70))
+    largura = largura * cpu / 100
+    pygame.draw.rect(tela, vermelho, (20, 150, largura, 70))  
+
+    texto_barra = f'Plataforma:{plataforma}. Uso da CPU: {cpu}%'
+    text = font14.render(texto_barra, 1, branco)
+    tela.blit(text, (200, 140))
+
+def memory_percent():
+    memoria = psutil.virtual_memory()
+    largura = largura_tela - 2*30
+
+    porcentagem = memoria.percent
+    total = round(memoria.total/(1024*1024*1024),2)
+
+    pygame.draw.rect(tela, azul, (20, 300, largura, 70))
+    largura = largura * porcentagem / 100
+    pygame.draw.rect(tela, vermelho, (20, 300, largura, 70))  
+
+    texto_barra = f"Uso de memória: {porcentagem} % (Total: " + str(total) + "GB):"
+    text = font14.render(texto_barra, 1, branco)
+    tela.blit(text, (300, 290))
+
+def uso_de_disco():
+
+    total_disco = psutil.disk_usage('.').percent
+    disco_total = psutil.disk_usage('.').total
+    largura =  largura_tela - 2*30    
+    
+    pygame.draw.rect(tela, azul, (20, 450, largura, 70))
+    largura = largura * total_disco/100
+    pygame.draw.rect(tela, vermelho, (20, 450, largura, 70))  
+
+    texto_barra = f'Disco usado: {total_disco}% (total{round(disco_total/(1024*1024*1024),2) }) )GB'
+    text = font14.render(texto_barra, 1, branco)
+    tela.blit(text, (300, 440))
+
+def pegar_ip():
+    dicionario = psutil.net_if_addrs()
+    ip = (dicionario['Ethernet'][1].address)
+    
+    texto_barra = f'Ip da máquina {ip}'
+    text = font20.render(texto_barra, 1, branco)
+    tela.blit(text,(30,570))
+
+
+pygame.init()
+font = pygame.font.SysFont(None,55)
+
+pygame.display.set_caption('Informações do computador')
+
+
+tela.fill(preto)
+
+pygame.draw.rect(tela, azul, [10, 10, 1000, 50])
+pygame.draw.rect(tela, rosa, [10, 110, 1000, 50])
+pygame.draw.rect(tela, branco, [10, 210, 1000, 50])
+pygame.draw.rect(tela, vermelho, [10, 310, 1000, 50])
+
+pygame.display.flip()
+
+time.sleep(2)
+
+tela.fill(preto)
+
+texto_grande = font30.render('Carregando informações - INFNET', 1, branco)
+
+tela.blit(texto_grande, [240,300])
+
+pygame.display.flip()
+time.sleep(2)
+tela.fill(preto)
+pygame.display.update()
+
+
+clock = pygame.time.Clock()
+cont = 60
+terminou = False
+while not terminou: 
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            terminou = True
+
+    if cont == 60:
+        tela.fill(preto)
+        memory_percent()
+        uso_de_disco()        
+        uso_cpu()
+        pegar_ip()
+        escrever_titulo()
+    cont = 0    
+    pygame.display.update()
+    clock.tick(60)
+    cont = cont + 1
+
+pygame.display.quit()
